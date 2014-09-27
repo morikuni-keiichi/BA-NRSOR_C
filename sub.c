@@ -6,15 +6,11 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-extern double eps, omg, one, zero;
-extern double *AC, *AR, *b, *Aei;
-extern int *ia, *ip, *ja, *jp, m, maxit, n, nin, nnz;
-
 void read_prm() {
 
 	FILE *file; 
 
-	 // Chech if AR.crs opens
+	 // Check if AR.crs opens
   	if ((file = fopen("prm.dat", "r")) == NULL) {
   		exit(1);
   	}
@@ -31,9 +27,9 @@ void read_prm() {
 void read_mat(int argc, char *argv[]) {
 
 	int i, j, k, m_AC, m_AR, n_AC, n_AR, nnz_AC, nnz_AR;
-	char filename[256];
 	char *fi_AC = "AC.ccs", *fi_ia = "ia.ccs", *fi_jp = "jp.ccs";
 	char *fi_AR = "AR.crs", *fi_ip = "ip.crs", *fi_ja = "ja.crs";
+  char filename[256];
 	FILE *file;
 
 	if (argc > 2) {
@@ -45,53 +41,53 @@ void read_mat(int argc, char *argv[]) {
 	}
 
 	strcpy(filename, argv[1]);
-  	strcat(filename, fi_AC);
+  strcat(filename, fi_AC);
 
-  	// Check if AC.ccs opens
-  	if ((file = fopen(filename, "r")) == NULL) {
-  		fprintf(stdout, "Failed to open AC.ccs");
-  		exit(1);
-  	}
-
-  	fscanf(file,"%d%d%d", &m_AC, &n_AC, &nnz_AC);
-
-  	// Allocation
-  	if ((AC = (double *)malloc(sizeof(double) * (nnz_AC))) == NULL) {
-		fprintf(stdout, "Failed to allocate AC");
+	// Check if AC.ccs opens
+	if ((file = fopen(filename, "r")) == NULL) {
+		fprintf(stderr, "Failed to open AC.ccs");
 		exit(1);
+	}
+
+	fscanf(file,"%d%d%d", &m_AC, &n_AC, &nnz_AC);
+
+	// Allocate
+	if ((AC = (double *)malloc(sizeof(double) * (nnz_AC))) == NULL) {
+    fprintf(stderr, "Failed to allocate AC");
+	  exit(1);
 	}
 
 	for (k = 0; k<nnz_AC; k++) fscanf(file, "%lf", &AC[k]);
 
-  	fclose(file);
+  fclose(file);
 
 	strcpy(filename, argv[1]);
-  	strcat(filename, fi_AR);
+  strcat(filename, fi_AR);
 
-  	// Chech if AR.crs opens
-  	if ((file = fopen(filename, "r")) == NULL) {
-  		fprintf(stdout, "Failed to open AR.crs");
-  		exit(1);
-  	}
-
-  	fscanf(file,"%d%d%d", &m_AR, &n_AR, &nnz_AR);
-
-  	if (m_AR != m_AC || n_AR != n_AC || nnz_AR != nnz_AC) {
-  		fprintf(stderr, "CRS and CCS files are not consistent.");
-  		exit(1);
-	} else {
-		m = m_AR;
-		n = n_AR;
-		nnz = nnz_AR;
-	}
-
-  	// Allocation
-  	if ((AR = (double *)malloc(sizeof(double) * (nnz))) == NULL) {
-		fprintf(stdout, "Failed to allocate AR");
+	// Check if AR.crs opens
+	if ((file = fopen(filename, "r")) == NULL) {
+		fprintf(stderr, "Failed to open AR.crs");
 		exit(1);
 	}
 
-	// Allocation
+	fscanf(file,"%d%d%d", &m_AR, &n_AR, &nnz_AR);
+
+	if (m_AR != m_AC || n_AR != n_AC || nnz_AR != nnz_AC) {
+		fprintf(stderr, "CRS and CCS files are not consistent.");
+		exit(1);
+	} else {
+		m = m_AR;
+		n = n_AR;
+    nnz = nnz_AR;
+  }
+
+  // Allocate
+  if ((AR = (double *)malloc(sizeof(double) * (nnz))) == NULL) {
+	 fprintf(stderr, "Failed to allocate AR");
+	 exit(1);
+	}
+
+	// Allocate
 	if ((ia = (int *)malloc(sizeof(int) * (nnz))) == NULL) {
 		fprintf(stderr, "Failed to allocate ia"); 
 		exit(1);
@@ -103,19 +99,19 @@ void read_mat(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	// Allocation
+	// Allocate
 	if ((ja = (int *)malloc(sizeof(int) * (nnz))) == NULL) {
 		fprintf(stderr, "Failed to allocate ja");
 		exit(1);
 	}
 
-	// Allocation
+	// Allocate
 	if ((jp = (int *)malloc(sizeof(int) * (n+1))) == NULL) {
 		fprintf(stderr, "Failed to allocate jp");
 		exit(1);
 	}
 
-	// Allocation
+	// Allocate
 	if ((Aei = (double *)malloc(sizeof(double) * n)) == NULL) {
 		fprintf(stderr, "Failed to allocate Aei");
 		exit(1);
@@ -133,9 +129,9 @@ void read_mat(int argc, char *argv[]) {
 	strcpy(filename, argv[1]);
   	strcat(filename, fi_ia);
 
-  	// Chech if ia.ccs opens
+  	// Check if ia.ccs opens
   	if ((file = fopen(filename, "r")) == NULL) {
-  		fprintf(stdout, "Failed to open ia.ccs");
+  		fprintf(stderr, "Failed to open ia.ccs");
   		exit(1);
   	}
 
@@ -152,9 +148,9 @@ void read_mat(int argc, char *argv[]) {
 	strcpy(filename, argv[1]);
   	strcat(filename, fi_ip);
 
-  	// Chech if ip.crs opens
+  	// Check if ip.crs opens
   	if ((file = fopen(filename, "r")) == NULL) {
-  		fprintf(stdout, "Failed to open ip.crs");
+  		fprintf(stderr, "Failed to open ip.crs");
   		exit(1);
   	}
 
@@ -173,7 +169,7 @@ void read_mat(int argc, char *argv[]) {
 
 	// Check if ja.crs opens
   	if ((file = fopen(filename, "r")) == NULL) {
-  		fprintf(stdout, "Failed to open ja.crs");
+  		fprintf(stderr, "Failed to open ja.crs");
   		exit(1);
   	}
 
@@ -192,7 +188,7 @@ void read_mat(int argc, char *argv[]) {
 
 	// Check if jp.ccs opens
   	if ((file = fopen(filename, "r")) == NULL) {
-  		fprintf(stdout, "Failed to open jp.ccs");
+  		fprintf(stderr, "Failed to open jp.ccs");
   		exit(1);
   	}
 
@@ -205,9 +201,9 @@ void read_mat(int argc, char *argv[]) {
 	// Close jp.ccs
   	fclose(file);
 
-	// Allocation
+	// Allocate b
 	if ((b = (double *)malloc(sizeof(double) * (m))) == NULL) {
-		fprintf(stdout, "Failed to allocate b");
+		fprintf(stderr, "Failed to allocate b");
 		exit(1);
 	}
 
@@ -235,7 +231,7 @@ void output(int iter, double *relres, double t_tot, double *x) {
 
   nrmATb = nrm2(ATr, n);
 
-	// r = A*x
+	// A x
 	for (i=0; i<m; i++) {
 		tmp = zero;
 		k1 = ip[i];
@@ -244,8 +240,10 @@ void output(int iter, double *relres, double t_tot, double *x) {
 		r[i] = tmp;
 	}
 
+  // r = b - A x
 	for (i=0; i<m; i++) r[i] = b[i] - r[i];
 
+  // ATr
 	for (j=0; j<n; j++) ATr[j] = zero;
 	for (i=0; i<m; i++) {
 		tmp = r[i];
@@ -255,30 +253,31 @@ void output(int iter, double *relres, double t_tot, double *x) {
 		}
   }	
 
-  	nrmATr = nrm2(ATr, n);
+  nrmATr = nrm2(ATr, n);
 
-  	tmp = one / nrmATb;
-  	for (k=0; k<iter; k++) relres[k] = tmp * relres[k];
-
-	printf("# of iterations: %d\n", iter);
-	printf("CPU time: %7.5f\n", t_tot);
+  	printf("omega: %6.3f\n", omg);
+	printf("# of outer iterations: %d\n", iter);
+	printf("# of inner iterations: %d\n", nin);
+	printf("CPU time: %16.5f\n", t_tot);
 	printf("Relative residual: %18.16e\n", relres[iter-1]);
 	printf("Actual relative residual: (ATr): %18.16e\n", nrmATr/nrmATb);
 
-	// Chech if info.dat opens
+	// Check if info.dat opens
   	if ((file = fopen("info.dat", "w")) == NULL) {
-  		fprintf(stdout, "Failed to open info.dat");
+  		fprintf(stderr, "Failed to open info.dat");
   		exit(1);
   	}
 
-  	fprintf(file, "# of iterations: %d\n", iter);
-  	fprintf(file, "CPU time: %7.5f\n", t_tot);
+	fprintf(file, "omega: %6.3f\n", omg);
+  fprintf(file, "# of outer iterations: %d\n", iter);
+  fprintf(file, "# of inner iterations: %d\n", nin);
+  fprintf(file, "CPU time: %16.5f\n", t_tot);
 	fprintf(file, "Relative residual: %18.16e\n", relres[iter-1]); 
 	fprintf(file, "Actual relative residual: (ATr): %18.16e\n", nrmATr/nrmATb);
 
   	fclose(file);
 
-  	// Chech if relres.dat opens
+  	// Check if relres.dat opens
   	if ((file = fopen("reshis.dat", "w")) == NULL) {
   		fprintf(stderr, "Failed to open relres.dat");
   		exit(1);
@@ -288,7 +287,7 @@ void output(int iter, double *relres, double t_tot, double *x) {
 
   	fclose(file);
 
-  	// Chech if solution.dat opens
+  	// Check if solution.dat opens
   	if ((file = fopen("solution.dat", "w")) == NULL) {
   		fprintf(stderr, "Failed to open solution.dat");
   		exit(1);

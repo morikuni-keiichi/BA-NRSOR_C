@@ -5,7 +5,7 @@ OBJCTS		= func.o sub.o solver.o main.o
 FC		= gcc
 
 ## normal ver.
-FFLAGS		= -O1 #-ffloat-store
+FFLAGS		= -O4 #-ffloat-store
 
 ## debug ver.
 #FFLAGS		= -CB -traceback -g -heap-arrays #-check uninit -warn all -check all -std

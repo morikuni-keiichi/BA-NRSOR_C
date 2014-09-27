@@ -4,10 +4,6 @@
 
 #include "header.h"
 
-extern double eps, one, omg, zero;
-extern double *AC, *AR, *b, *Aei;
-extern int *ia, *ip, *ja, *jp, m, maxit, n, nin, nnz;
-
 void BAGMRES(int *iter, double *relres, double *x) {
 
 	double **H = NULL, **V = NULL;
@@ -24,21 +20,21 @@ void BAGMRES(int *iter, double *relres, double *x) {
 	// Allocate H[maxit][maxit+1]
 	for (k=0; k<maxit; k++) {
 		if ((H[k] = (double *)malloc(sizeof(double) * (k+2))) == NULL) {
-			fprintf(stdout, "Failed to allocate H");
+			fprintf(stderr, "Failed to allocate H");
 			exit(1);
 		}
 	}
 
 	// Allocate V[maxit+1]
 	if ((V = malloc(sizeof(double) * (maxit+1))) == NULL) {
-		fprintf(stdout, "Failed to allocate V");
+		fprintf(stderr, "Failed to allocate V");
 		exit(1);
 	}
 
 	// Allocate V[maxit+1][n]
 	for (j=0; j<maxit+1; j++) {
 		if ((V[j] = (double *)malloc(sizeof(double) * n)) == NULL) {
-			fprintf(stdout, "Failed to allocate V");
+			fprintf(stderr, "Failed to allocate V");
 			exit(1);;
 		}
 	}
@@ -55,7 +51,7 @@ void BAGMRES(int *iter, double *relres, double *x) {
 	// Take the inverse of ||aj||
 	for (j=0; j<n; j++) {
 		if (Aei[j] > zero) {
-			Aei[j] = omg / Aei[j];
+			Aei[j] = one / Aei[j];
 		} else {
 			fprintf(stderr, "warning: ||aj|| = 0.0");
 			exit(1);
@@ -82,11 +78,14 @@ void BAGMRES(int *iter, double *relres, double *x) {
   	for (i=0; i<m; i++) r[i] = b[i];
 
   	// NR-SOR inner iterations: w = B r
-  	NRSOR(r, w);
+  	// NRSOR(r, w);
+  	opNRSOR(r, w); 
+  
+  	for (j=0; j<n; j++) Aei[j] = omg * Aei[j];
 
   	// beta = norm(Bb)
   	beta = nrm2(w, n);
-
+  	
   	// Normalize
   	tmp = one / beta;
   	for (j=0; j<n; j++) V[0][j] = tmp * w[j];
@@ -144,11 +143,12 @@ void BAGMRES(int *iter, double *relres, double *x) {
 		g[k+1] = -s[k] * g[k];
 		g[k] = c[k] * g[k];
 
-		nrmATr = fabs(g[k+1]);
-		relres[k] = nrmATr;
+		relres[k] = fabs(g[k+1]) / beta; 
 
-		if (nrmATr < Tol || k == maxit-1) {
+		if (relres[k] < eps || k == maxit-1) {
 
+			// Derivation of the approximate solution x_k
+			// Backward substitution		
 			y[k] = g[k] / H[k][k];
 			for (i=k-1; i>-1; i--) {				
 				tmp = zero;
@@ -156,6 +156,7 @@ void BAGMRES(int *iter, double *relres, double *x) {
 				y[i] = (g[i] - tmp) / H[i][i];
 			}
 
+			// x = V y
 			for (j=0; j<n; j++) x[j] = zero;
 			for (l=0; l<k+1; l++) {
 				for (j=0; j<n; j++) x[j] += V[l][j]*y[l];
@@ -182,9 +183,10 @@ void BAGMRES(int *iter, double *relres, double *x) {
 				}
 		 	}		 	
 
-		  	// printf("%.15e\n", nrm2(w, n)/nrmATb);
+		 	nrmATr = nrm2(w, n);
 
-		  	if (nrm2(w, n) < Tol || k == maxit-1) {
+		 	// Convergence check
+		  	if (nrmATr < Tol || k == maxit-1) {
 				*iter = k+1;
 
 				for (j=0; j<maxit+1; j++) {
@@ -213,7 +215,40 @@ void NRSOR(double *rhs, double *x)
 
 	for (j=0; j<n; j++) x[j] = zero;
 
-	for (k=0; k<nin; k++) {
+	for (k=1; k<=nin; k++) {
+		for (j=0; j<n; j++) {
+			k1 = jp[j];
+			k2 = jp[j+1];
+			d = zero;
+			for (l=k1; l<k2; l++) d += AC[l]*rhs[ia[l]];
+			d = d * Aei[j];			
+			x[j] = x[j] + d;
+			if (k == nin && j == n-1) return;
+			for (l=k1; l<k2; l++) {
+				i = ia[l];
+				rhs[i] = rhs[i] - d*AC[l];
+			}
+		}
+	}
+}
+
+
+void opNRSOR(double *rhs, double *x)
+{
+	double d, e, res1, res2 = zero, tmp, y[n], tmprhs[m];
+	int i, ii, j, k, k1, k2, l;
+
+	// Initilize
+	for (i=0; i<m; i++) tmprhs[i] = rhs[i];
+
+	for (j=0; j<n; j++) {
+		x[j] = zero;
+		y[j] = zero;	
+	}
+
+	// Tune the number of inner iterations 
+	for (k=1; k<=100; k++) {
+
 		for (j=0; j<n; j++) {
 			k1 = jp[j];
 			k2 = jp[j+1];
@@ -226,5 +261,67 @@ void NRSOR(double *rhs, double *x)
 				rhs[i] = rhs[i] - d*AC[l];
 			}
 		}
+
+		d = zero;
+		for (j=0; j<n; j++) { 
+			tmp = fabs(x[j]);
+			if (d < tmp) d = tmp;
+		}
+
+		e = zero;
+		for (j=0; j<n; j++) { 
+			tmp = fabs(x[j] - y[j]);
+			if (e < tmp) e = tmp;
+		}
+
+		if (e<1.0e-1*d || k == 100) {
+			nin = k;
+			break;
+
+		}
+
+		for (j=0; j<n; j++) y[j] = x[j];
+
+	}
+
+	// Tune the relaxation parameter
+	for (k=19; k>0; k--) {
+		omg = 1.0e-1 * (double)(k); // omg = 1.9, 1.8, ..., 0.1
+
+		for (i=0; i<m; i++) rhs[i] = tmprhs[i];
+
+		for (j=0; j<n; j++) x[j] = zero;
+
+		for (i=1; i<=nin; i++) {
+			for (j=0; j<n; j++) {
+				k1 = jp[j];
+				k2 = jp[j+1];
+				d = zero;
+				for (l=k1; l<k2; l++) d += AC[l]*rhs[ia[l]];
+				d = omg * d * Aei[j];			
+				x[j] = x[j] + d;
+				for (l=k1; l<k2; l++) {
+					ii = ia[l];
+					rhs[ii] = rhs[ii] - d*AC[l];
+				}
+			}
+		}
+
+		res1 = nrm2(rhs, m);
+
+		if (k < 19) {
+			if (res1 > res2) {
+				omg = omg + 1.0e-1;
+				for (j=0; j<n; j++) x[j] = y[j];					
+				return;
+			} else if (k == 1) {
+				omg = 1.0e-1;
+				return;
+			}
+		}
+
+		res2 = res1;
+
+		for (j=0; j<n; j++) y[j] = x[j];
 	}
 }

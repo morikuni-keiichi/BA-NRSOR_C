@@ -23,18 +23,19 @@ int main(int argc, char *argv[])
 	// Read matrix data
 	read_mat(argc, argv);
 
-	// Allocation
+	// Allocate x
 	if ((x = (double *)malloc(sizeof(double) * (n))) == NULL) {
 		fprintf(stderr, "Failed to allocate x");
 		exit(1);
 	}
 
-	// Allocation
+	// Allocate relres
 	if ((relres = (double *)malloc(sizeof(double) * (maxit))) == NULL) {
 		fprintf(stderr, "Failed to allocate relres");
 		exit(1);
 	}	
 	
+	// BA-GMRES
 	t1 = clock();
   	BAGMRES(&iter, relres, x);
   	t2 = clock();
@@ -43,13 +44,13 @@ int main(int argc, char *argv[])
   	// Output results
   	output(iter, relres, t_tot, x);
 
-  	// Deallocation
+  	// Deallocate
 	free(AR);
 	free(ip);
 	free(ja);
 	free(x);
 	free(b);
-	// free(relres);
+	free(relres);
 
 	return 0;
 }
