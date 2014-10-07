@@ -6,8 +6,8 @@
 
 // Global variables
 double eps, omg, one = 1.0, zero = 0.0;
-double *AC = NULL, *AR = NULL, *b = NULL, *Aei = NULL;
-int *ia = NULL, *ip = NULL, *ja = NULL, *jp = NULL, m, maxit, n, nin, nnz;
+double *AC = NULL, *b = NULL, *Aei = NULL;
+int *ia = NULL, *jp = NULL, m, maxit, n, nin, nnz;
 
 int main(int argc, char *argv[])
 {
@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
   	output(iter, relres, t_tot, x);
 
   	// Deallocate
-	free(AR);
-	free(ip);
-	free(ja);
+	free(AC);
+	free(jp);
+	free(ia);
 	free(x);
 	free(b);
 	free(relres);

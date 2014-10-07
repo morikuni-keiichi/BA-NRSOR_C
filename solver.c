@@ -4,6 +4,8 @@
 
 #include "header.h"
 
+
+// BA-GMRES
 void BAGMRES(int *iter, double *relres, double *x) {
 
 	double **H = NULL, **V = NULL;
@@ -39,34 +41,28 @@ void BAGMRES(int *iter, double *relres, double *x) {
 		}
 	}
 	
-	// Norm of the jth column of A for NR-SOR
-	for (j=0; j<n; j++) Aei[j] = zero;
-	for (i=0; i<m; i++) {
-		for (l=ip[i]; l<ip[i+1]; l++) {
-			j = ja[l];
-			Aei[j] = Aei[j] + AR[l]*AR[l];
-		}
-	}
-
-	// Take the inverse of ||aj||
+	// Take the inverse of the norm of the jth column of A for NR-SOR
 	for (j=0; j<n; j++) {
-		if (Aei[j] > zero) {
-			Aei[j] = one / Aei[j];
+		
+		tmp = zero;
+		for (l=jp[j]; l<jp[j+1]; l++) tmp += AC[l]*AC[l];
+
+		if (tmp > zero) {
+			Aei[j] = one / tmp;
 		} else {
 			fprintf(stderr, "warning: ||aj|| = 0.0");
 			exit(1);
 		}
 	}
-
-	for (j=0; j<n; j++) w[j] = zero; // Initilize
-	// w = A^T b
-	for (i=0; i<m; i++) {
-  		tmp = b[i];
-  		for (l=ip[i]; l<ip[i+1]; l++) {
-  			j = ja[l];
-  			w[j] = w[j] + tmp*AR[l];
-  		}
-  	}
+	
+	// // w = A^T b	
+	for (j=0; j<n; j++) {
+		tmp = zero;
+		k1 = jp[j];
+		k2 = jp[j+1];
+		for (l=k1; l<k2; l++) tmp += AC[l]*b[ia[l]];
+		w[j] = tmp;
+	}
 
   	// norm of A^T b
   	nrmATb = nrm2(w, n);
@@ -78,8 +74,11 @@ void BAGMRES(int *iter, double *relres, double *x) {
   	for (i=0; i<m; i++) r[i] = b[i];
 
   	// NR-SOR inner iterations: w = B r
-  	// NRSOR(r, w);
+  	fprintf(stdout, "Automatic NR-SOR inner-iteration parameter tuning\n");
+  	fflush(stdout);
   	opNRSOR(r, w); 
+  	fprintf(stdout, "Tuned\n");
+  	fflush(stdout);
   
   	for (j=0; j<n; j++) Aei[j] = omg * Aei[j];
 
@@ -96,14 +95,15 @@ void BAGMRES(int *iter, double *relres, double *x) {
   	// Main loop
   	for (k=0; k<maxit; k++) {
 
-		// r = A v 	
-  		for (i=0; i<m; i++) {
-			tmp = zero;
-			k1 = ip[i];
-			k2 = ip[i+1];
-			for (l=k1; l<k2; l++) tmp += AR[l]*V[k][ja[l]];
-			r[i] = tmp;
-		}
+		// r = A v
+		for (i=0; i<m; i++) r[i] = zero; // Initilize
+		for (j=0; j<n; j++) {
+			tmp = V[k][j];
+			for (l=jp[j]; l<jp[j+1]; l++) {
+				i = ia[l];
+				r[i] = r[i] + tmp*AC[l];
+			}
+	 	}
 
 		// NR-SOR inner iterations: w = B r
 		NRSOR(r, w);
@@ -113,7 +113,7 @@ void BAGMRES(int *iter, double *relres, double *x) {
 			tmp = zero;
 			for (j=0; j<n; j++) tmp += w[j]*V[i][j];
 			H[k][i] = tmp;
-			for (j=0; j<n; j++) w[j] = w[j] - tmp*V[i][j];
+			for (j=0; j<n; j++) w[j] -= tmp*V[i][j];
 		}
 
 		// h_{kL1, k}
@@ -162,26 +162,27 @@ void BAGMRES(int *iter, double *relres, double *x) {
 				for (j=0; j<n; j++) x[j] += V[l][j]*y[l];
 			}
 
-			// r = A x 	
-	  		for (i=0; i<m; i++) {
-				tmp = zero;
-				k1 = ip[i];
-				k2 = ip[i+1];
-				for (l=k1; l<k2; l++) tmp += AR[l]*x[ja[l]];
-				r[i] = tmp;
-			}
+			// r = A x
+			for (i=0; i<m; i++) r[i] = zero; // Initilize
+			for (j=0; j<n; j++) {
+				tmp = x[j];
+				for (l=jp[j]; l<jp[j+1]; l++) {
+					i = ia[l];
+					r[i] = r[i] + tmp*AC[l];
+				}
+		 	}
 			
-			// w = A^T r
+			// r = b - Ax
 			for (i=0; i<m; i++) r[i] = b[i] - r[i];
 
-			for (j=0; j<n; j++) w[j] = zero; // Initilize
-			for (i=0; i<m; i++) {
-				tmp = r[i];
-				for (l=ip[i]; l<ip[i+1]; l++) {
-					j = ja[l];
-					w[j] = w[j] + tmp*AR[l];
-				}
-		 	}		 	
+			// w = A^T r
+		 	for (j=0; j<n; j++) {
+				tmp = zero;
+				k1 = jp[j];
+				k2 = jp[j+1];
+				for (l=k1; l<k2; l++) tmp += AC[l]*r[ia[l]];
+				w[j] = tmp;
+			}
 
 		 	nrmATr = nrm2(w, n);
 
@@ -208,6 +209,7 @@ void BAGMRES(int *iter, double *relres, double *x) {
 }
 
 
+// NR-SOR inner-iteration preconditioning
 void NRSOR(double *rhs, double *x)
 {
 	double d;
@@ -233,6 +235,7 @@ void NRSOR(double *rhs, double *x)
 }
 
 
+// Automatic parameter tuninig for the NR-SOR inner-iteration preconditioning
 void opNRSOR(double *rhs, double *x)
 {
 	double d, e, res1, res2 = zero, tmp, y[n], tmprhs[m];
@@ -258,7 +261,7 @@ void opNRSOR(double *rhs, double *x)
 			x[j] = x[j] + d;
 			for (l=k1; l<k2; l++) {
 				i = ia[l];
-				rhs[i] = rhs[i] - d*AC[l];
+				rhs[i] -= d*AC[l];
 			}
 		}
 
@@ -302,7 +305,7 @@ void opNRSOR(double *rhs, double *x)
 				x[j] = x[j] + d;
 				for (l=k1; l<k2; l++) {
 					ii = ia[l];
-					rhs[ii] = rhs[ii] - d*AC[l];
+					rhs[ii] -= d*AC[l];
 				}
 			}
 		}
@@ -311,7 +314,7 @@ void opNRSOR(double *rhs, double *x)
 
 		if (k < 19) {
 			if (res1 > res2) {
-				omg = omg + 1.0e-1;
+				omg += 1.0e-1;
 				for (j=0; j<n; j++) x[j] = y[j];					
 				return;
 			} else if (k == 1) {

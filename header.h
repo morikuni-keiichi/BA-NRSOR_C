@@ -10,5 +10,5 @@ void opNRSOR(double rhs[], double x[]);
 
 
 extern double eps, omg, one, zero;
-extern double *AC, *AR, *b, *Aei;
-extern int *ia, *ip, *ja, *jp, m, maxit, n, nin, nnz;
+extern double *AC, *b, *Aei;
+extern int *ia, *jp, m, maxit, n, nin, nnz;
