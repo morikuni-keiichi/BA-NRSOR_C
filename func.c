@@ -8,11 +8,7 @@ double drand(double l, double h) {
 
 // Purpose
 // =======
-// 
 // drand returns a random double variable
-// 
-// 
-// 
 // 
 // =====================================================================
 

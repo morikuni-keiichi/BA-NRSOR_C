@@ -38,15 +38,15 @@ Keiichi Morikuni morikuni@cs.cas.cz
 BA-GMRES preconditioned by NR-SOR inner iterations involves the following files:
 
    main.c 		last update October 7, 2014
-   solver.c		last update October 7, 2014
-   sub.c      last update October 7, 2014
+   solver.c		last update November 19, 2014
+   sub.c      last update November 19, 2014
    func.c	
    globvar.c	last update October 7, 2014
    prm.dat		last update October 7, 2014
    plot.plt		(may be used if gnuplot is available)
    makefile		last update October 7, 2014
    header.h   last update October 7, 2014
-   readme     last update October 7, 2014
+   readme     last update November 19, 2014
 
 A test matrix called RANDL7 in the compressed column storage (CCS) format 
 is given in RANDL7 directory. Parameters such as the number of NR-SOR inner 
@@ -57,7 +57,7 @@ The NR-SOR inner iteration parameters can be automatically tuned at each restart
 To compile the codes and run the program, proceed as follows:
 
   $ make 
-  $ ./main
+  $ ./main RANDL7/
 
 Then the program outputs the approximate solution data solution.dat,
 the result data info.dat, and the relative residual norm history data reshis.dat.  

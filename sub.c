@@ -52,7 +52,7 @@ void read_mat(int argc, char *argv[]) {
 	} else {
 		fscanf(file,"%d%d%d", &m, &n, &nnz);
 
-		// Allocate
+		// Allocate AC
 		if ((AC = (double *)malloc(sizeof(double) * (nnz))) == NULL) {
 	    	fprintf(stderr, "Failed to allocate AC");
 		  	exit(1);
@@ -62,19 +62,19 @@ void read_mat(int argc, char *argv[]) {
 		}
 	}
 
-	// Allocate
+	// Allocate ia
 	if ((ia = (int *)malloc(sizeof(int) * (nnz))) == NULL) {
 		fprintf(stderr, "Failed to allocate ia"); 
 		exit(1);
 	}
 	
-	// Allocate
+	// Allocate jp
 	if ((jp = (int *)malloc(sizeof(int) * (n+1))) == NULL) {
 		fprintf(stderr, "Failed to allocate jp");
 		exit(1);
 	}
 
-	// Allocate
+	// Allocate Aei
 	if ((Aei = (double *)malloc(sizeof(double) * n)) == NULL) {
 		fprintf(stderr, "Failed to allocate Aei");
 		exit(1);
@@ -145,13 +145,10 @@ void output(int iter, double *relres, double t_tot, double *x) {
   	nrmATb = nrm2(ATr, n);
 
 	// A x
-	for (i=0; i<m; i++) r[i] = zero; // Initilize
+	for (i=0; i<m; i++) r[i] = zero; // Initialize
 	for (j=0; j<n; j++) {
 		tmp = x[j];
-		for (l=jp[j]; l<jp[j+1]; l++) {
-			i = ia[l];
-			r[i] += tmp*AC[l];
-		}
+		for (l=jp[j]; l<jp[j+1]; l++) r[ia[l]] += tmp*AC[l];
  	}
 
   	// r = b - A x
