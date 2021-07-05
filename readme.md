@@ -30,6 +30,12 @@ To simply run the program with the default values of parameters on a test matrix
 $ ./main 
 ```
 
+Then the program outputs the approximate solution data solution.dat, the result data info.dat, and the relative residual norm history data reshis.dat.  
+A test matrix called RANDL7 in the compressed column storage (CCS) format is given in directory RANDL7. 
+In addition, some spcific data is output in log.csv.
+Parameters such as the number of NR-SOR inner iterations and the NR-SOR relaxation parameter are written in prm.dat.
+The NR-SOR inner iteration parameters can be automatically tuned at each restart.
+
 ## Contacts
 
 Please provide feedback to [morikuni.keiichi.fw@u.tsukuba.ac.jp](mailto:morikuni.keiichi.fw@u.tsukuba.ac.jp) if you have any questions or suggestions.
@@ -48,24 +54,6 @@ Supported by
 ## Support
 
 The Graduate University for Advanced Studies (SOKENDAI), Shonan Village, Hayama, Kanagawa 240-0193 Japan
-
-A test matrix called RANDL7 in the compressed column storage (CCS) format 
-is given in RANDL7 directory. Parameters such as the number of NR-SOR inner 
-iterations and the NR-SOR relaxation parameter are written in prm.dat.
-The NR-SOR inner iteration parameters can be automatically tuned at each restart.
-
-
-To compile the codes and run the program, proceed as follows:
-
-  $ make 
-  $ ./main RANDL7/
-
-Then the program outputs the approximate solution data solution.dat,
-the result data info.dat, and the relative residual norm history data reshis.dat.  
-In addition, some spcific data is output in log.csv.
-
-Please provide feedback if you have any questions or suggestions.
-morikuni@cs.cas.cz
 
 
 ### References
