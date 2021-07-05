@@ -47,10 +47,6 @@ Postal Address: 1-1-1 Tennodai, Tsukuba, Ibaraki 305-8573, Japan
 
 Homepage URL: [http://researchmap.jp/KeiichiMorikuni/](http://researchmap.jp/KeiichiMorikuni/)
 
-Supported by 
- The Graduate University for Advanced Studies (SOKENDAI)
- Shonan Village, Hayama, Kanagawa 240-0193 Japan
-
 ## Support
 
 The Graduate University for Advanced Studies (SOKENDAI), Shonan Village, Hayama, Kanagawa 240-0193 Japan
