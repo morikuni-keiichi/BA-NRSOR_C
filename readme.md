@@ -18,7 +18,7 @@ Keiichi Morikuni [morikuni.keiichi.fw@u.tsukuba.ac.jp](mailto:morikuni.keiichi.f
 
 To compile the codes, execute the following:
 
-```
+```shell
 $ make
 ```
 
@@ -26,7 +26,7 @@ Change the Fortran compiler given in the Makefile file if necessary.
 
 To simply run the program with the default values of parameters on a test matrix RANDL7, execute the following:
 
-```
+```shell
 $ ./main 
 ```
 
