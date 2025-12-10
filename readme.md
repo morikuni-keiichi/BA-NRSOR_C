@@ -38,7 +38,7 @@ The NR-SOR inner iteration parameters can be automatically tuned at each restart
 
 ## Contacts
 
-Please provide feedback to [morikuni.keiichi.fw@u.tsukuba.ac.jp](mailto:morikuni.keiichi.fw@u.tsukuba.ac.jp) if you have any questions or suggestions.
+Please provide feedback to morikuni.keiichi.fw at sign u.tsukuba.ac.jp if you have any questions or suggestions.
 
 Keiichi Morikuni, Ph.D.  
 
